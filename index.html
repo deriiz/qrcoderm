@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <title>QR Code Quality Retain</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+        }
+
+        #header {
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #mainContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #formContainer {
+            width: 75%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #formLeft {
+            width: 100%;
+        }
+
+        #formRight {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #qrcodeContainer {
+            border: 2px solid #ccc;
+            padding: 20px;
+            max-width: 100%;
+            width: 25%;
+            text-align: center;
+            box-sizing: border-box;
+            margin-top: 20px;
+            margin-right: 100px;
+            margin-left: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        #qrcodeContainer.qr-placeholder::before {
+        content: 'QR Code';
+        font-size: 16px;
+        color: #666;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        }
+
+        #qrcode {
+            margin: auto;
+        }
+
+        #downloadBtn {
+            display: none;
+            margin-top: 20px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #resetBtn {
+        padding: 10px;
+        background-color: rgb(30, 166, 230);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        position: absolute;
+        bottom: 0;
+        right: -20px;
+        }
+
+    </style>
+</head>
+<body onload="setFocus()">
+    <div id="header">
+        <h1>UPDATE QR CODE</h1>
+    </div>
+
+    <div id="mainContainer">
+        <div id="formContainer">
+            <div id="formLeft">
+                <label for="labelLama">Label Lama (Scan QR Code) :</label>
+                <input type="text" id="labelLama" placeholder="Scan QR Code" oninput="updateLabelBaru()">
+
+                <label for="quantity">Quantity Sampel (Kg) :</label>
+                <input type="number" id="quantity" placeholder="Quantity Must Be number" step="any" oninput="updateLabelBaru()">
+
+                <label for="labelBaru">Label Baru :</label>
+                <input type="text" id="labelBaru" readonly style="background-color: #ccc; width: 100%; padding: 8px; border: 1px solid #ccc;">
+            </div>
+
+            <div id="formRight">
+                <button onclick="generateQRCode()">Generate QR Code</button>
+                <button id="resetBtn" onclick="resetForm()">Reset Data</button>
+            </div>
+        </div>
+
+        <div id="qrcodeContainer" class="qr-placeholder">
+            <div id="qrcode"></div>
+            <div id="resultQuantity"></div>
+        </div>
+
+        <div id="downloadBtnContainer">
+            <button id="downloadBtn" onclick="downloadQRCode()">Download</button>
+        </div>
+
+    </div>
+
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+    
+
+    <script>
+        function updateLabelBaru() {
+            var labelLama = document.getElementById("labelLama").value;
+            var quantity = document.getElementById("quantity").value;
+
+            if (labelLama && quantity) {
+                var newQuantity = (parseFloat(labelLama.split("|L:")[1]) - parseFloat(quantity)).toFixed(3);
+
+                // Create Decimal if > 0
+                newQuantity = newQuantity.endsWith(".000") ? parseInt(newQuantity) : newQuantity;
+
+                var newLabel = labelLama.replace(/L:\d+(\.\d+)?/, "L:" + newQuantity);
+
+                document.getElementById("labelBaru").value = newLabel;
+                clearQRCode();
+                hideDownloadButton();
+                showQRCodePlaceholder();
+                updateResultQuantity();
+
+            } else {
+                // Clear field
+                document.getElementById("labelBaru").value = "";
+                document.getElementById("quantity").value = "";
+                clearQRCode();
+                hideDownloadButton();
+                showQRCodePlaceholder();
+                updateResultQuantity();
+
+            }
+        }
+
+        function setFocus() {
+            document.getElementById("labelLama").focus();
+        }
+
+        function updateResultQuantity() {
+            document.getElementById("resultQuantity").textContent = "";
+        }
+
+        function generateQRCode() {
+            updateLabelBaru();
+
+            var labelBaru = document.getElementById("labelBaru").value;
+            var qrcodeContainer = document.getElementById("qrcodeContainer");
+            var quantityValue = labelBaru.match(/L:(\d+(\.\d+)?)/)[1];
+
+            if (labelBaru) {
+                qrcodeContainer.classList.remove('qr-placeholder');
+
+                var qr = new QRCode(document.getElementById("qrcode"), {
+                    text: labelBaru,
+                    width: 100,
+                    height: 100,
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                var resultQuantity = document.getElementById("resultQuantity");
+                resultQuantity.textContent = quantityValue;
+
+                showDownloadButton();
+            } else {
+                clearQRCode();
+                hideDownloadButton();
+                alert("Please fill in both Label Lama and Quantity Sample.");
+            }
+        }
+
+        function resetForm() {
+            document.getElementById("labelLama").value = "";
+            document.getElementById("quantity").value = "";
+            document.getElementById("labelBaru").value = "";
+            document.getElementById("labelLama").focus();
+            clearQRCode();
+            hideDownloadButton();
+            showQRCodePlaceholder();
+            setFocus();
+            updateResultQuantity();
+        }
+
+        function showQRCodePlaceholder() {
+            var qrcodeContainer = document.getElementById("qrcodeContainer");
+            qrcodeContainer.classList.add('qr-placeholder');
+        }
+
+        function clearQRCode() {
+            document.getElementById("qrcode").innerHTML = "";
+        }
+
+        function showDownloadButton() {
+            document.getElementById("downloadBtn").style.display = "inline-block";
+        }
+
+        function hideDownloadButton() {
+            document.getElementById("downloadBtn").style.display = "none";
+        }
+
+        window.addEventListener('beforeunload', function(event) {
+        resetForm();
+        });
+
+
+        function downloadQRCode() {
+            var labelBaru = document.getElementById("labelBaru").value;
+
+            if (labelBaru) {
+                var quantityValue = labelBaru.match(/L:(\d+(\.\d+)?)/)[1];
+        
+                // Generate QR Code
+                var qrForDownload = new QRCode(document.createElement("div"), {
+                    text: labelBaru,
+                    width: 100,
+                    height: 100,
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                // Extract QR Code
+                var qrCodeImage = qrForDownload._el.firstChild.toDataURL("image/png");
+
+                // Create Canvas
+                var canvas = document.createElement('canvas');
+                canvas.width = 150;
+                canvas.height = 150;
+                
+                var ctx = canvas.getContext('2d');
+
+                 // canvas background white
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Transparent Background
+                //ctx.fillStyle = 'rgba(255, 255, 255, 0)';
+                ///ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw QR Code on canvas
+                var img = new Image();
+                img.src = qrCodeImage;
+                ctx.drawImage(img, 25, 20);
+                Image.width =  70;
+                Image.height = 70;
+
+
+                // Draw quantity below QR Code
+                ctx.font = '12px Arial'; 
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.fillText(quantityValue, canvas.width / 2, 135);
+
+                // Convert the canvas to data URL
+                var combinedImage = canvas.toDataURL('image/png');
+                
+                var isConfirmed = confirm("Download QR Code dengan quantity : " + quantityValue + " ? ");
+
+                if (isConfirmed) {
+                    // Download
+                    var a = document.createElement('a');
+                    a.href = combinedImage;
+                    a.download = labelBaru + ".png";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } 
+                else {
+                    alert("Download Canceled.");
+                }
+            } else {
+                alert("Please fill in both Label Lama and Quantity Sample.");
+            }
+        }
+    </script>
+</body>
+</html>
