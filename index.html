@@ -213,7 +213,7 @@
                 });
 
                 var resultQuantity = document.getElementById("resultQuantity");
-                resultQuantity.textContent = quantityValue;
+                resultQuantity.textContent = quantityValue + " kg";
 
                 showDownloadButton();
             } else {
@@ -266,60 +266,58 @@
                 // Generate QR Code
                 var qrForDownload = new QRCode(document.createElement("div"), {
                     text: labelBaru,
-                    width: 100,
-                    height: 100,
+                    width: 50,
+                    height: 50,
                     correctLevel: QRCode.CorrectLevel.H
                 });
 
-                // Extract QR Code
-                var qrCodeImage = qrForDownload._el.firstChild.toDataURL("image/png");
-
+                
                 // Create Canvas
                 var canvas = document.createElement('canvas');
-                canvas.width = 150;
-                canvas.height = 150;
+                canvas.width = 70;
+                canvas.height = 85;
                 
                 var ctx = canvas.getContext('2d');
+                var qrCodeImage = qrForDownload._el.firstChild.toDataURL("image/png");
 
-                 // canvas background white
+                //canvas background white
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Transparent Background
-                //ctx.fillStyle = 'rgba(255, 255, 255, 0)';
-                ///ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+                                
                 // Draw QR Code on canvas
-                var img = new Image();
-                img.src = qrCodeImage;
-                ctx.drawImage(img, 25, 20);
-                Image.width =  70;
-                Image.height = 70;
+                 var img = new Image();
+
+                img.onload = function() {
+                    ctx.drawImage(img, 10, 10);
 
 
-                // Draw quantity below QR Code
-                ctx.font = '12px Arial'; 
-                ctx.fillStyle = '#000';
-                ctx.textAlign = 'center';
-                ctx.fillText(quantityValue, canvas.width / 2, 135);
+                    // Draw quantity below QR Code
+                    ctx.font = '12px Arial'; 
+                    ctx.fillStyle = '#000';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(quantityValue + " kg", canvas.width / 2, 75);
 
-                // Convert the canvas to data URL
-                var combinedImage = canvas.toDataURL('image/png');
+                    // Convert the canvas to data URL
+                    var combinedImage = canvas.toDataURL('image/png');
                 
-                var isConfirmed = confirm("Download QR Code dengan quantity : " + quantityValue + " ? ");
+                    var isConfirmed = confirm("Download QR Code dengan quantity : " + quantityValue + " kg" + " ?");
 
-                if (isConfirmed) {
-                    // Download
-                    var a = document.createElement('a');
-                    a.href = combinedImage;
-                    a.download = labelBaru + ".png";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                } 
-                else {
-                    alert("Download Canceled.");
-                }
+                    if (isConfirmed) {
+                        // Download
+                        var a = document.createElement('a');
+                        a.href = combinedImage;
+                        a.download = labelBaru + ".png";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } 
+                    else {
+                        alert("Download Canceled.");
+                    }
+                };
+
+                img.src = qrCodeImage;
             } else {
                 alert("Please fill in both Label Lama and Quantity Sample.");
             }
