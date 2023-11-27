@@ -207,8 +207,8 @@
 
                 var qr = new QRCode(document.getElementById("qrcode"), {
                     text: labelBaru,
-                    width: 100,
-                    height: 100,
+                    width: 200,
+                    height: 200,
                     correctLevel: QRCode.CorrectLevel.H
                 });
 
@@ -266,16 +266,16 @@
                 // Generate QR Code
                 var qrForDownload = new QRCode(document.createElement("div"), {
                     text: labelBaru,
-                    width: 50,
-                    height: 50,
+                    width: 100,
+                    height: 100,
                     correctLevel: QRCode.CorrectLevel.H
                 });
 
                 
                 // Create Canvas
                 var canvas = document.createElement('canvas');
-                canvas.width = 70;
-                canvas.height = 85;
+                canvas.width = 120;
+                canvas.height = 150;
                 
                 var ctx = canvas.getContext('2d');
                 var qrCodeImage = qrForDownload._el.firstChild.toDataURL("image/png");
@@ -293,10 +293,10 @@
 
 
                     // Draw quantity below QR Code
-                    ctx.font = '12px Arial'; 
+                    ctx.font = 'bold 17px Roboto'; 
                     ctx.fillStyle = '#000';
                     ctx.textAlign = 'center';
-                    ctx.fillText(quantityValue + " kg", canvas.width / 2, 75);
+                    ctx.fillText(quantityValue + " kg", canvas.width / 2, 132);
 
                     // Convert the canvas to data URL
                     var combinedImage = canvas.toDataURL('image/png');
@@ -305,12 +305,13 @@
 
                     if (isConfirmed) {
                         // Download
-                        var a = document.createElement('a');
-                        a.href = combinedImage;
-                        a.download = labelBaru + ".png";
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        //var a = document.createElement('a');
+                        //a.href = combinedImage;
+                        //a.download = labelBaru + ".png";
+                        //document.body.appendChild(a);
+                        //a.click();
+                        //document.body.removeChild(a);
+                        sendZPLToZebraPrinter(combinedImage);
                     } 
                     else {
                         alert("Download Canceled.");
@@ -321,7 +322,36 @@
             } else {
                 alert("Please fill in both Label Lama and Quantity Sample.");
             }
+            
         }
+        function sendZPLToZebraPrinter(zplData) {
+    // Cari perangkat Zebra dengan Vendor ID 0x0a5f
+            navigator.usb.requestDevice({ filters: [{ vendorId: 0x0a5f }] })
+            .then(device => {
+                console.log('Device opened:', device);
+                // Buka koneksi ke perangkat USB
+                return device.open();
+            })
+            .then(handle => {
+                console.log('Device handle:', handle);
+                // Aktifkan interface yang sesuai
+                return handle.claimInterface(0);
+            })
+            .then(() => {
+                console.log('Interface claimed');
+                // Konversi string ZPL ke data Uint8Array
+                const data = new TextEncoder().encode(zplData);
+                // Kirim data ke perangkat USB
+                return handle.transferOut(1, data);
+            })
+            .then(result => {
+                console.log('Data sent:', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
     </script>
 </body>
 </html>
