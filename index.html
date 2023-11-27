@@ -136,7 +136,7 @@
 
             <div id="formRight">
                 <button onclick="generateQRCode()">Generate QR Code</button>
-                <button id="resetBtn" onclick="resetForm()">Reset Data</button>
+                <button id="resetBtn" onclick="resetAndRefresh()">Reset Data</button>
             </div>
         </div>
 
@@ -256,6 +256,11 @@
         resetForm();
         });
 
+        function resetAndRefresh() {
+        resetForm();
+        location.reload();
+        }
+
 
         function downloadQRCode() {
             var labelBaru = document.getElementById("labelBaru").value;
@@ -274,8 +279,8 @@
                 
                 // Create Canvas
                 var canvas = document.createElement('canvas');
-                canvas.width = 120;
-                canvas.height = 150;
+                canvas.width = 110;
+                canvas.height = 140;
                 
                 var ctx = canvas.getContext('2d');
                 var qrCodeImage = qrForDownload._el.firstChild.toDataURL("image/png");
@@ -289,14 +294,14 @@
                  var img = new Image();
 
                 img.onload = function() {
-                    ctx.drawImage(img, 10, 10);
+                    ctx.drawImage(img, 5, 5);
 
 
                     // Draw quantity below QR Code
-                    ctx.font = 'bold 17px Roboto'; 
+                    ctx.font = 'bold 17px Arial'; 
                     ctx.fillStyle = '#000';
                     ctx.textAlign = 'center';
-                    ctx.fillText(quantityValue + " kg", canvas.width / 2, 132);
+                    ctx.fillText(quantityValue + " kg", canvas.width / 2, 125);
 
                     // Convert the canvas to data URL
                     var combinedImage = canvas.toDataURL('image/png');
@@ -305,13 +310,12 @@
 
                     if (isConfirmed) {
                         // Download
-                        //var a = document.createElement('a');
-                        //a.href = combinedImage;
-                        //a.download = labelBaru + ".png";
-                        //document.body.appendChild(a);
-                        //a.click();
-                        //document.body.removeChild(a);
-                        sendZPLToZebraPrinter(combinedImage);
+                        var a = document.createElement('a');
+                        a.href = combinedImage;
+                        a.download = labelBaru + ".png";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
                     } 
                     else {
                         alert("Download Canceled.");
@@ -322,28 +326,7 @@
             } else {
                 alert("Please fill in both Label Lama and Quantity Sample.");
             }
-            
         }
-        function sendZPLToZebraPrinter(zplData) {
-            navigator.usb.requestDevice({ filters: [{ vendorId: 0x0a5f }] })
-                .then(device => device.open())
-                .then(device => device.claimInterface(0))
-                .then(interface => {
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(zplData);
-
-                    return interface.transferOut(1, data);
-                })
-                .then(result => {
-                    console.log('Data terkirim dengan sukses:', result);
-                })
-                .catch(error => {
-                    console.error('Gagal mengirim data ke printer Zebra:', error);
-                });
-        }
-
-        // Panggil fungsi dengan perintah ZPL
-        sendZPLToZebraPrinter('^XA^FO50,50^ADN,36,20^FDHello, World!^FS^XZ');
     </script>
 </body>
 </html>
