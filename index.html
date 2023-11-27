@@ -326,7 +326,7 @@
         }
         function sendZPLToZebraPrinter(zplData) {
             // Mendapatkan perangkat USB Zebra
-            navigator.usb.requestDevice({ filters: [{ vendorId: 0x05E0 }] })
+            navigator.usb.requestDevice({ filters: [{ vendorId: 0x0a5f }] })
                 .then(device => {
                     console.log('Menghubungkan ke printer Zebra:', device);
                     return device.open();
