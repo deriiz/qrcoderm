@@ -325,41 +325,25 @@
             
         }
         function sendZPLToZebraPrinter(zplData) {
-    // Mendapatkan perangkat USB Zebra
-    navigator.usb.requestDevice({ filters: [{ vendorId: 0x0a5f }] })
-        .then(device => {
-            console.log('Menghubungkan ke printer Zebra:', device);
-            return device.open();
-        })
-        .then(device => device.claimInterface(0))
-        .then(interface => {
-            // Mengonversi string ZPL menjadi data yang dapat dikirim
-            const encoder = new TextEncoder();
-            const data = encoder.encode(zplData);
+            navigator.usb.requestDevice({ filters: [{ vendorId: 0x0a5f }] })
+                .then(device => device.open())
+                .then(device => device.claimInterface(0))
+                .then(interface => {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(zplData);
 
-            // Mengirim data ke perangkat USB
-            return interface.transferOut(1, data);
-        })
-        .then(result => {
-            console.log('Data terkirim dengan sukses:', result);
+                    return interface.transferOut(1, data);
+                })
+                .then(result => {
+                    console.log('Data terkirim dengan sukses:', result);
+                })
+                .catch(error => {
+                    console.error('Gagal mengirim data ke printer Zebra:', error);
+                });
+        }
 
-            // Setelah data terkirim, tambahkan perintah untuk mencetak
-            const printCommand = '^XA^FO50,50^ADN,36,20^FDHello, World!^FS^XZ';
-            const encoder = new TextEncoder();
-            const printData = encoder.encode(printCommand);
-
-            // Mengirim perintah cetak ke perangkat USB
-            return interface.transferOut(1, printData);
-        })
-        .then(printResult => {
-            console.log('Perintah cetak terkirim dengan sukses:', printResult);
-        })
-        .catch(error => {
-            console.error('Gagal mengirim data ke printer Zebra:', error);
-        });
-    }
-
-
+        // Panggil fungsi dengan perintah ZPL
+        sendZPLToZebraPrinter('^XA^FO50,50^ADN,36,20^FDHello, World!^FS^XZ');
     </script>
 </body>
 </html>
